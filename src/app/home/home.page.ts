@@ -21,6 +21,7 @@ export class HomePage {
 
   async ngOnInit() {
     this.location = await this.locationService.getCurrentLocation();
+    this.getCurrentWeatherReport(this.location.latitude, this.location.longitude);
   }
 
   getCurrentWeatherReport(lat: number, lon: number) {

@@ -71,3 +71,6 @@ Thumbs.db
 
 #android
 /android
+
+#Secret Environment
+src/environments/environement.secret.ts
