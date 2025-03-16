@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
-import { Geolocation } from '@capacitor/geolocation';
+import { WeatherService } from '../services/weather.service';
+import { LocationService } from '../services/location.service';
 
 @Component({
   selector: 'app-home',
@@ -9,28 +10,27 @@ import { Geolocation } from '@capacitor/geolocation';
 })
 export class HomePage {
   location: any = {};
+  currentDate: number = new Date().setHours(0,0,0,0);
 
-
-  constructor() {
-    this.getCurrentLocation();
+  constructor(
+    private weatherService: WeatherService,
+    private locationService: LocationService
+  ) {
+    
   }
 
-  async getCurrentLocation() {
-    try {
-      const coordinates = await Geolocation.getCurrentPosition();
-      const { latitude, longitude } = coordinates.coords;
-      this.location.latitude = latitude;
-      this.location.longitude = longitude;
-    } catch(error) {
-      alert("Unable to get current location as of this moment: "+error);
-    }
+  async ngOnInit() {
+    this.location = await this.locationService.getCurrentLocation();
   }
 
-  async getCurrentWeatherReport() {
-    try {
-      
-    } catch(error) {
-      alert("Unable to get current weather report as of this moment: "+error);
-    }
+  getCurrentWeatherReport(lat: number, lon: number) {
+    this.weatherService.getCurrentWeather(lat, lon).subscribe(
+      (data) => {
+        console.log(data);
+      },
+      (error) => {
+        alert("Unable to get current weather report as of this moment: "+error);
+      }
+    )
   }
 }
