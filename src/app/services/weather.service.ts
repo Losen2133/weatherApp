@@ -15,18 +15,18 @@ export class WeatherService {
 
   constructor(private http: HttpClient) { }
 
-  getCurrentWeather(lat: any, lon: any): Observable<any> {
-    const url = `${this.currentWeatherApiUrl}?lat=${lat}&lon=${lon}&appid=${this.apiKey}`;
+  getCurrentWeather(lat: any, lon: any, units: string = 'metric'): Observable<any> {
+    const url = `${this.currentWeatherApiUrl}?lat=${lat}&lon=${lon}&units=${units}&appid=${this.apiKey}`;
     return this.http.get(url);
   }
 
-  getDailyWeather(lat: any, lon: any, count: number): Observable<any> {
-    const url = `${this.dailyWeatherApiUrl}?lat=${lat}&lon=${lon}&cnt=${count}&appid=${this.apiKey}`;
+  getDailyWeather(lat: any, lon: any, count: number, units: string = 'metric'): Observable<any> {
+    const url = `${this.dailyWeatherApiUrl}?lat=${lat}&lon=${lon}&cnt=${count}&units=${units}&appid=${this.apiKey}`;
     return this.http.get(url);
   }
 
-  getHourlyWeather(lat: any, lon: any, count: number): Observable<any> {
-    const url = `${this.hourlyWeatherApiUrl}?lat=${lat}&lon=${lon}&cnt=${count}&appid=${this.apiKey}`;
+  getHourlyWeather(lat: any, lon: any, count: number, units: string = 'metric'): Observable<any> {
+    const url = `${this.hourlyWeatherApiUrl}?lat=${lat}&lon=${lon}&cnt=${count}&units=${units}&appid=${this.apiKey}`;
     return this.http.get(url);
   }
 }
