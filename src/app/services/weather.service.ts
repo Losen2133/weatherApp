@@ -20,12 +20,12 @@ export class WeatherService {
     return this.http.get(url);
   }
 
-  getDailyWeather(lat: any, lon: any, count: number, units: string = 'metric'): Observable<any> {
+  getDailyWeather(lat: any, lon: any, count: number = 0, units: string = 'metric'): Observable<any> {
     const url = `${this.dailyWeatherApiUrl}?lat=${lat}&lon=${lon}&cnt=${count}&units=${units}&appid=${this.apiKey}`;
     return this.http.get(url);
   }
 
-  getHourlyWeather(lat: any, lon: any, count: number, units: string = 'metric'): Observable<any> {
+  getHourlyWeather(lat: any, lon: any, count: number = 0, units: string = 'metric'): Observable<any> {
     const url = `${this.hourlyWeatherApiUrl}?lat=${lat}&lon=${lon}&cnt=${count}&units=${units}&appid=${this.apiKey}`;
     return this.http.get(url);
   }

@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { WeatherService } from '../services/weather.service';
 import { LocationService } from '../services/location.service';
 import { PreferenceService } from '../services/preference.service';
+import { ThemeService } from '../services/theme.service';
 
 @Component({
   selector: 'app-home',
@@ -18,6 +19,7 @@ export class HomePage {
     private weatherService: WeatherService,
     private locationService: LocationService,
     private preferenceService: PreferenceService,
+    private themeService: ThemeService
   ) {
     
   }
@@ -31,7 +33,9 @@ export class HomePage {
   async getUserSettings() {
     this.userSettings = await this.preferenceService.getPreference('settings');
     if(this.userSettings === null) {
-      this.preferenceService.createSettingPreference({'tempFormat': 'metric'});
+      this.preferenceService.createSettingPreference({'tempFormat': 'metric', 'darkMode': 'false'});
+    } else {
+      this.themeService.toggleChange(this.userSettings.darkMode);
     }
   }
 

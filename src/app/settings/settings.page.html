@@ -6,6 +6,9 @@
 
 <ion-content [fullscreen]="true">
   <ion-item>
+    <ion-toggle (ionChange)="settingChange()" [(ngModel)]="darkMode">Dark Mode</ion-toggle>
+  </ion-item>
+  <ion-item>
     <ion-select label="Temperature Format" (ionChange)="settingChange()" [(ngModel)]="tempFormat">
       <ion-select-option value="metric">Celcius</ion-select-option>
       <ion-select-option value="imperial">Fahrenheit</ion-select-option>
