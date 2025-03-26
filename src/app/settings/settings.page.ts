@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { PreferenceService } from '../services/preference.service';
 import { ThemeService } from '../services/theme.service';
+import { Location } from '@angular/common';
 
 @Component({
   selector: 'app-settings',
@@ -15,7 +16,8 @@ export class SettingsPage implements OnInit {
 
   constructor(
     private preferenceService: PreferenceService,
-    private themeService: ThemeService
+    private themeService: ThemeService,
+    private location: Location
   ) { }
 
   async ngOnInit() {
@@ -34,6 +36,10 @@ export class SettingsPage implements OnInit {
     this.settings.darkMode = this.darkMode;
     this.themeService.toggleChange(this.darkMode);
     await this.preferenceService.createSettingPreference(this.settings);
+  }
+
+  goBack(){
+    this.location.back();
   }
 
 }

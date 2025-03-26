@@ -1,6 +1,10 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>Settings</ion-title>
+    <ion-button slot="start" fill="clear" (click)="goBack()">
+      <ion-icon name="arrow-back"></ion-icon>
+      Back
+    </ion-button>
+    <ion-title slot="center">Settings</ion-title>
   </ion-toolbar>
 </ion-header>
 

@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { Router } from '@angular/router';
 import { PreferenceService } from '../services/preference.service';
 import { ThemeService } from '../services/theme.service';
 
@@ -14,6 +15,7 @@ export class HomePage {
   userSettings: any;
 
   constructor(
+    private router: Router,
     private preferenceService: PreferenceService,
     private themeService: ThemeService
   ) {
@@ -32,5 +34,9 @@ export class HomePage {
       await this.preferenceService.createSettingPreference(settings);
     }
     return settings;
+  }
+
+  goToNav() {
+    this.router.navigate(['/navigation']);
   }
 }
