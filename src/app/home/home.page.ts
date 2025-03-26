@@ -1,6 +1,4 @@
 import { Component } from '@angular/core';
-import { WeatherService } from '../services/weather.service';
-import { LocationService } from '../services/location.service';
 import { PreferenceService } from '../services/preference.service';
 import { ThemeService } from '../services/theme.service';
 
@@ -16,8 +14,6 @@ export class HomePage {
   userSettings: any;
 
   constructor(
-    private weatherService: WeatherService,
-    private locationService: LocationService,
     private preferenceService: PreferenceService,
     private themeService: ThemeService
   ) {
@@ -25,28 +21,16 @@ export class HomePage {
   }
 
   async ngOnInit() {
-    await this.getUserSettings();
-    this.location = await this.locationService.getCurrentLocation();
-    this.getCurrentWeatherReport(this.location.latitude, this.location.longitude, this.userSettings.tempFormat);
+    this.userSettings = await this.getUserSettings();
+    this.themeService.toggleChange(this.userSettings.darkMode);
   }
 
   async getUserSettings() {
-    this.userSettings = await this.preferenceService.getPreference('settings');
-    if(this.userSettings === null) {
-      this.preferenceService.createSettingPreference({'tempFormat': 'metric', 'darkMode': 'false'});
-    } else {
-      this.themeService.toggleChange(this.userSettings.darkMode);
+    let settings = await this.preferenceService.getPreference('settings');
+    if (!settings) {
+      settings = { tempFormat: 'metric', darkMode: 'false' };
+      await this.preferenceService.createSettingPreference(settings);
     }
-  }
-
-  getCurrentWeatherReport(lat: number, lon: number, units: string = '') {
-    this.weatherService.getCurrentWeather(lat, lon, units).subscribe(
-      (data) => {
-        console.log(data);
-      },
-      (error) => {
-        alert("Unable to get current weather report as of this moment: "+error);
-      }
-    )
+    return settings;
   }
 }

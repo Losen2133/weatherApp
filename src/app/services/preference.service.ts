@@ -27,4 +27,9 @@ export class PreferenceService {
       console.log("Cannot create user setting preference as of this moment: "+error);
     }
   }
+
+  async clearPreferences() {
+    await Preferences.clear();
+    alert("Preferences Cleared!");
+  }
 }

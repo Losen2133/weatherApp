@@ -20,14 +20,13 @@ export class SettingsPage implements OnInit {
 
   async ngOnInit() {
     await this.getUserSettings();
-    
+    this.themeService.toggleChange(this.darkMode);
   }
 
   async getUserSettings() {
     const userSettings = await this.preferenceService.getPreference('settings');
     this.tempFormat = userSettings.tempFormat;
     this.darkMode = userSettings.darkMode;
-    this.themeService.toggleChange(this.darkMode);
   }
 
   async settingChange() {

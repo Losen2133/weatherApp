@@ -10,11 +10,15 @@ const routes: Routes = [
     path: '',
     redirectTo: 'home',
     pathMatch: 'full'
-  },  {
+  },
+  {
     path: 'settings',
     loadChildren: () => import('./settings/settings.module').then( m => m.SettingsPageModule)
   },
-
+  {
+    path: 'navigation',
+    loadChildren: () => import('./navigation/navigation.module').then( m => m.NavigationPageModule)
+  },
 ];
 
 @NgModule({

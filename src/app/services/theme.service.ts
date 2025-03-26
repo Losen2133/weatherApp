@@ -10,4 +10,8 @@ export class ThemeService {
   toggleChange(shouldAdd: boolean) {
     document.documentElement.classList.toggle('ion-palette-dark', shouldAdd);
   }
+
+  detectTheme() {
+    
+  }
 }

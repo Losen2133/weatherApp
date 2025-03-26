@@ -1,18 +1,25 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>Stratosphere Settings</ion-title>
+    <ion-title>Settings</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <ion-item>
-    <ion-toggle (ionChange)="settingChange()" [(ngModel)]="darkMode">Dark Mode</ion-toggle>
-  </ion-item>
-  <ion-item>
-    <ion-select label="Temperature Format" (ionChange)="settingChange()" [(ngModel)]="tempFormat">
-      <ion-select-option value="metric">Celcius</ion-select-option>
-      <ion-select-option value="imperial">Fahrenheit</ion-select-option>
-      <ion-select-option value="standard">Kelvin</ion-select-option>
-    </ion-select>
-  </ion-item>
+  <ion-list-header>Theme</ion-list-header>
+  <ion-list [inset]="true">
+    <ion-item>
+      <ion-toggle (ionChange)="settingChange()" [(ngModel)]="darkMode">Dark Mode</ion-toggle>
+    </ion-item>
+  </ion-list>
+  
+  <ion-list-header>Preference</ion-list-header>
+  <ion-list [inset]="true">
+    <ion-item>
+      <ion-select label="Temperature Format" (ionChange)="settingChange()" [(ngModel)]="tempFormat">
+        <ion-select-option value="metric">Celcius</ion-select-option>
+        <ion-select-option value="imperial">Fahrenheit</ion-select-option>
+        <ion-select-option value="standard">Kelvin</ion-select-option>
+      </ion-select>
+    </ion-item>
+  </ion-list>
 </ion-content>
