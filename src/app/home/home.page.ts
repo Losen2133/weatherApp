@@ -10,7 +10,6 @@ import { ThemeService } from '../services/theme.service';
   standalone: false,
 })
 export class HomePage {
-  location: any = {};
   currentDate: number = new Date().setHours(0,0,0,0);
   userSettings: any;
 
