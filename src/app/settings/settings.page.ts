@@ -35,7 +35,7 @@ export class SettingsPage implements OnInit {
     this.settings.tempFormat = this.tempFormat;
     this.settings.darkMode = this.darkMode;
     this.themeService.toggleChange(this.darkMode);
-    await this.preferenceService.createSettingPreference(this.settings);
+    await this.preferenceService.createPreference('settings' ,this.settings);
   }
 
   goBack(){

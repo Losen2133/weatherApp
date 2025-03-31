@@ -20,12 +20,13 @@ export class PreferenceService {
     return null;
   }
 
-  async createSettingPreference(settings: any) {
+  async createPreference(key: string, value: any) {
     try {
-      await Preferences.set({ key: 'settings', value: JSON.stringify(settings) });
-    } catch(error){
-      console.log("Cannot create user setting preference as of this moment: "+error);
+      await Preferences.set({ key: key, value: JSON.stringify(value) })
+    } catch {
+      await Preferences.set({ key: key, value: value });
     }
+    
   }
 
   async clearPreferences() {

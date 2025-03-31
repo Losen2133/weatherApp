@@ -21,18 +21,7 @@ export class HomePage {
     
   }
 
-  async ngOnInit() {
-    this.userSettings = await this.getUserSettings();
-    this.themeService.toggleChange(this.userSettings.darkMode);
-  }
-
-  async getUserSettings() {
-    let settings = await this.preferenceService.getPreference('settings');
-    if (!settings) {
-      settings = { tempFormat: 'metric', darkMode: 'false' };
-      await this.preferenceService.createSettingPreference(settings);
-    }
-    return settings;
+  ngOnInit() {
   }
 
   goToNav() {
