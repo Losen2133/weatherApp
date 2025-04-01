@@ -9,10 +9,17 @@ import { LocationService } from 'src/app/services/location.service';
   standalone: false
 })
 export class CurrentweatherPage {
+  location: { lat: number; lon: number } | null = null;
 
   constructor(
-    
+    private locationService: LocationService
   ) { }
+
+  ngOnInit() {
+
+  }
+
+
 
 
 }

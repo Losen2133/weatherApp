@@ -3,6 +3,7 @@ import { LocationService } from './services/location.service';
 import { WeatherService } from './services/weather.service';
 import { PreferenceService } from './services/preference.service';
 import { ThemeService } from './services/theme.service';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -12,8 +13,8 @@ import { ThemeService } from './services/theme.service';
 })
 export class AppComponent {
   userSettings: any;
-  location: { lat: number, lon: Number } | null = null;
-  currentWeather: any;
+  location: { lat: number, lon: number } | null = null;
+  currentWeather: any = {};
 
   constructor(
     private locationService: LocationService,
@@ -32,13 +33,20 @@ export class AppComponent {
       console.log('Settings Initialized', this.userSettings);
     }
 
-    this.startLocation();
-    
+    this.locationService.startWatchingPosition(); // Location Service
+    this.locationService.location$.subscribe(coords => {
+      if(coords) {
+        this.location = coords;
+      }
+    });
+    this.location = await this.locationService.getCurrentPosition();
+    console.log('Current Location: ', this.location);
 
     this.currentWeather = await this.preferenceService.getPreference('currentWeather'); // Current Weather
     if(this.currentWeather === null) {
       console.log('Current Weather data not collected, collecting data...');
-
+      this.getCurrentWeather();
+      this.currentWeather = await this.preferenceService.getPreference('currentWeather');
     }
   }
 
@@ -51,17 +59,22 @@ export class AppComponent {
     await this.preferenceService.createPreference('settings', setting);
   }
 
-  startLocation() {
-    this.locationService.location$.subscribe((coords: { lat: number; lon: Number; } | null) => {
-      if(coords) {
-        this.location = coords;
-        console.log(this.location);
-      }
-    })
-  }
 
-  async getCurrentWeather() {
+  getCurrentWeather() {
+    if(!this.location) {
+      console.log('Cannot get weather data as of this moment!');
+      return;
+    }
     
+    this.weatherService.getCurrentWeather(this.location, this.userSettings.tempFormat).subscribe(
+      async (data) => {
+        console.log('Weather Fetch: ', this.currentWeather);
+        await this.preferenceService.createPreference('currentWeather', data);
+      },
+      (error) => {
+        console.error('Error fetching weather data: ', error);
+      }
+    )
   }
 
 }

@@ -5,6 +5,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 @Injectable({
   providedIn: 'root'
 })
+
 export class LocationService {
   private locationSubject = new BehaviorSubject<{ lat: number, lon: number } | null>(null);
   location$: Observable<{ lat: number; lon: number } | null> = this.locationSubject.asObservable();
@@ -12,8 +13,6 @@ export class LocationService {
   constructor() { }
 
   async startWatchingPosition() {
-    await Geolocation.requestPermissions();
-
     Geolocation.watchPosition(
       { enableHighAccuracy: true },
       (position, err) => {
@@ -35,10 +34,12 @@ export class LocationService {
 
   async getCurrentPosition() {
     const position = await Geolocation.getCurrentPosition();
-    return {
+    const coords = {
       lat: position.coords.latitude,
       lon: position.coords.longitude
     };
+    this.locationSubject.next(coords);
+    return coords;
   }
 
 }
