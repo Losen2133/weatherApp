@@ -3,7 +3,8 @@ import { LocationService } from './services/location.service';
 import { WeatherService } from './services/weather.service';
 import { PreferenceService } from './services/preference.service';
 import { ThemeService } from './services/theme.service';
-import { Observable } from 'rxjs';
+import { Network } from '@capacitor/network';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -12,19 +13,27 @@ import { Observable } from 'rxjs';
   standalone: false,
 })
 export class AppComponent {
+  isConnected = false;
   userSettings: any;
   location: { lat: number, lon: number } | null = null;
-  currentWeather: any = {};
+  currentWeather: any = null;
+  hourlyWeather: any = null;
+  dailyWeather: any = null;
 
   constructor(
     private locationService: LocationService,
     private weatherService: WeatherService,
     private preferenceService: PreferenceService,
-    private themeService: ThemeService
   ) {}
 
   async ngOnInit() {
-    //await this.preferenceService.clearPreferences();
+    await this.checkNetworkStatus();
+
+    Network.addListener('networkStatusChange', status => {
+      this.isConnected = status.connected;
+    })
+
+    await this.preferenceService.clearPreferences();
     this.userSettings = await this.preferenceService.getPreference('settings'); // User Settings
     if(this.userSettings === null) {
       console.log('Settings not set, initializing settings...');
@@ -42,12 +51,26 @@ export class AppComponent {
     this.location = await this.locationService.getCurrentPosition();
     console.log('Current Location: ', this.location);
 
-    this.currentWeather = await this.preferenceService.getPreference('currentWeather'); // Current Weather
-    if(this.currentWeather === null) {
-      console.log('Current Weather data not collected, collecting data...');
-      this.getCurrentWeather();
-      this.currentWeather = await this.preferenceService.getPreference('currentWeather');
+    if(this.isConnected) {
+      await this.getCurrentWeather();
+      console.log('Current Weather: ', this.currentWeather);
+      await this.preferenceService.createPreference('currentWeather', this.currentWeather);
+
+      await this.getHourlyWeather();
+      console.log('Hourly Weather: ', this.hourlyWeather);
+      await this.preferenceService.createPreference('hourlyWeather', this.hourlyWeather);
+
+      await this.getDailyWeather();
+      console.log('Daily Weather: ', this.dailyWeather);
+      await this.preferenceService.createPreference('dailyWeather', this.dailyWeather);
     }
+
+    
+  }
+
+  async checkNetworkStatus() {
+    const status = await Network.getStatus();
+    this.isConnected = status.connected;
   }
 
   async initUserSettings() {
@@ -60,21 +83,49 @@ export class AppComponent {
   }
 
 
-  getCurrentWeather() {
+  async getCurrentWeather() {
     if(!this.location) {
       console.log('Cannot get weather data as of this moment!');
       return;
     }
-    
-    this.weatherService.getCurrentWeather(this.location, this.userSettings.tempFormat).subscribe(
-      async (data) => {
-        console.log('Weather Fetch: ', this.currentWeather);
-        await this.preferenceService.createPreference('currentWeather', data);
-      },
-      (error) => {
-        console.error('Error fetching weather data: ', error);
-      }
-    )
+
+    try {
+      this.currentWeather = await firstValueFrom(
+        this.weatherService.getCurrentWeather(this.location, this.userSettings.tempFormat)
+      );
+    } catch(error) {
+      console.error('Error fetching current weather data as of the moment: ', error);
+    }
+  }
+
+  async getHourlyWeather() {
+    if(!this.location) {
+      console.log('Cannot get weather data as of this moment!');
+      return;
+    }
+
+    try {
+      this.hourlyWeather = await firstValueFrom(
+        this.weatherService.getHourlyWeather(this.location, 5, this.userSettings.tempFormat)
+      );
+    } catch(error) {
+      console.error('Error fetching hourly weather data as of this moment: ', error)
+    }
+  }
+
+  async getDailyWeather() {
+    if(!this.location) {
+      console.log('Cannot get weather data as of this moment!');
+      return;
+    }
+
+    try {
+      this.dailyWeather = await firstValueFrom(
+        this.weatherService.getDailyWeather(this.location, 5, this.userSettings.tempFormat)
+      );
+    } catch(error) {
+      console.error('Error fetching daily weather data as of this moment: ', error)
+    }
   }
 
 }
