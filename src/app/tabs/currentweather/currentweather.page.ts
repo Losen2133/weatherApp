@@ -14,9 +14,10 @@ export class CurrentweatherPage {
   userSettings: any;
   location: { lat: number; lon: number } | null = null;
   currentWeather: any = null;
-  currentWeatherIcon: string = 'assets/icon/day/02d@2x.png';
+  currentWeatherIcon: any = null //'assets/icon/day/02d@2x.png';
   currentWeatherParams: any = null;
   hourlyWeather: any = null;
+  hourlyWeatherIcon: any = null;
   hourlyWeatherParams: any = null;
   previousPage: string | null = null;
 
@@ -48,6 +49,8 @@ export class CurrentweatherPage {
 
     this.currentWeather = await this.preferenceService.getPreference('currentWeather');
     this.hourlyWeather = await this.preferenceService.getPreference('hourlyWeather');
+    this.assignCurrentWeatherParams();
+    console.log(this.currentWeatherParams);
 
     
   }
@@ -62,8 +65,6 @@ export class CurrentweatherPage {
     this.currentWeatherParams.weather = this.currentWeather.data.weather[0];
     this.currentWeatherParams.wind = this.currentWeather.data.wind;
     this.currentWeatherParams.main = this.currentWeather.data.main;
-
-
   }
 
   asignHourlyWeatherParams() {
