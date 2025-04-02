@@ -1,9 +1,9 @@
 <app-page-header></app-page-header>
 
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">currentweather</ion-title>
-    </ion-toolbar>
-  </ion-header>
+  <div class="container">
+    <ion-card class="curren-weather">
+      <ion-img class="current-weather-icon" [src]="currentWeatherIcon" alt="current-weather-icon"></ion-img>
+    </ion-card>
+  </div>
 </ion-content>
