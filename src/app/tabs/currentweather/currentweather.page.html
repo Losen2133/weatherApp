@@ -2,8 +2,10 @@
 
 <ion-content [fullscreen]="true">
   <div class="container">
-    <ion-card class="curren-weather">
-      <ion-img class="current-weather-icon" [src]="currentWeatherIcon" alt="current-weather-icon"></ion-img>
+
+    <ion-spinner *ngIf="loading"></ion-spinner>
+    <ion-card class="curren-weather" *ngIf="!loading">
+      <ion-img class="current-weather-icon" [src]="currentWeatherIcon" alt="current-weather-icon" *ngIf="!loading"></ion-img>
     </ion-card>
   </div>
 </ion-content>

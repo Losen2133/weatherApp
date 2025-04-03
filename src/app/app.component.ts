@@ -4,6 +4,7 @@ import { WeatherService } from './services/weather.service';
 import { PreferenceService } from './services/preference.service';
 import { Network } from '@capacitor/network';
 import { firstValueFrom } from 'rxjs';
+import { InitializationService } from './services/initialization.service';
 
 @Component({
   selector: 'app-root',
@@ -23,6 +24,7 @@ export class AppComponent {
     private locationService: LocationService,
     private weatherService: WeatherService,
     private preferenceService: PreferenceService,
+    private initService: InitializationService
   ) {}
 
   async ngOnInit() {
@@ -68,7 +70,8 @@ export class AppComponent {
       await this.preferenceService.createPreference('dailyWeather', this.dailyWeather);
     }
 
-    
+    this.initService.initComplete();
+    console.log('Initialization Complete!!');
   }
 
   async checkNetworkStatus() {
