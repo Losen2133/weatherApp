@@ -10,6 +10,7 @@
     </ion-card>
     <div class="hourly-container">
       <ion-card class="hourly-weather" *ngFor="let weather of hourlyWeatherParams">
+        <span class="hourly-dt">{{ weather.dt }}</span>
         <ion-img class="hourly-weather-icon" [src]="weather.icon" alt="hourly-weather-icon"></ion-img>
         <span class="hourly-main-temp">{{ weather.main.temp }}&deg;</span>
       </ion-card>

@@ -89,12 +89,21 @@ export class CurrentweatherPage {
     for(let counter = 0;counter < 5;counter++) {
       this.hourlyWeatherParams[counter] = {};
       this.hourlyWeatherParams[counter].tempFormat = this.hourlyWeather.tempFormat;
-      this.hourlyWeatherParams[counter].dt = this.hourlyWeather.data.list[counter].dt;
+      this.hourlyWeatherParams[counter].dt = this.formatTimestamp(this.hourlyWeather.data.list[counter].dt * 1000);
       this.hourlyWeatherParams[counter].weather = this.hourlyWeather.data.list[counter].weather[0];
       this.hourlyWeatherParams[counter].wind = this.hourlyWeather.data.list[counter].wind;
       this.hourlyWeatherParams[counter].main = this.hourlyWeather.data.list[counter].main;
       this.hourlyWeatherParams[counter].icon = 'assets/icon/weather-icons/' + this.hourlyWeather.data.list[counter].weather[0].icon + '@2x.png';
     }
+  }
+
+  formatTimestamp(timestamp: number) {
+    console.log("dt: ", timestamp)
+    return new Date(timestamp).toLocaleString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
   }
 
 
