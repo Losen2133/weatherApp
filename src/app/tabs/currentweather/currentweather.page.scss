@@ -5,4 +5,41 @@ div.container {
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    overflow-x: visible;
+
+    ion-card.current-weather {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+
+        span.current-main-temp {
+            font-size: 35px;
+        }
+    }
+
+    div.hourly-container {
+        width: inherit;
+        display: flex;
+        flex-direction: row;
+        overflow-x: visible;
+        overflow-y: hidden;
+        justify-content: center;
+        align-items: center;
+        padding: 10px;
+        margin-top: 50px;
+
+        ion-card.hourly-weather{
+            margin: 5px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+
+            span.hourly-main-temp {
+                font-size: 15px;
+            }
+        }
+    }
 }

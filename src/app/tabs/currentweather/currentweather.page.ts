@@ -20,7 +20,6 @@ export class CurrentweatherPage {
   currentWeatherIcon: any = null 
   currentWeatherParams: any = null;
   hourlyWeather: any = null;
-  hourlyWeatherIcon: any = null;
   hourlyWeatherParams: any = null;
   previousPage: string | null = null;
 
@@ -67,9 +66,10 @@ export class CurrentweatherPage {
 
     this.currentWeather = await this.preferenceService.getPreference('currentWeather');
     this.hourlyWeather = await this.preferenceService.getPreference('hourlyWeather');
+    console.log(this.hourlyWeather);
     this.assignCurrentWeatherParams();
-    console.log(this.currentWeatherParams.icon);
-    this.currentWeatherIcon = this.currentWeatherParams.icon;
+    this.assignHourlyWeatherParams();
+
 
     this.loading = false;
     console.log('Done loading!');
@@ -81,11 +81,20 @@ export class CurrentweatherPage {
     this.currentWeatherParams.weather = this.currentWeather.data.weather[0];
     this.currentWeatherParams.wind = this.currentWeather.data.wind;
     this.currentWeatherParams.main = this.currentWeather.data.main;
-    this.currentWeatherParams.icon = 'assets/icon/weather-icons/' + this.currentWeather.data.weather[0].icon + '@2x.png'
+    this.currentWeatherParams.icon = 'assets/icon/weather-icons/' + this.currentWeather.data.weather[0].icon + '@2x.png';
   }
 
-  asignHourlyWeatherParams() {
-
+  assignHourlyWeatherParams() {
+    this.hourlyWeatherParams = [];
+    for(let counter = 0;counter < 5;counter++) {
+      this.hourlyWeatherParams[counter] = {};
+      this.hourlyWeatherParams[counter].tempFormat = this.hourlyWeather.tempFormat;
+      this.hourlyWeatherParams[counter].dt = this.hourlyWeather.data.list[counter].dt;
+      this.hourlyWeatherParams[counter].weather = this.hourlyWeather.data.list[counter].weather[0];
+      this.hourlyWeatherParams[counter].wind = this.hourlyWeather.data.list[counter].wind;
+      this.hourlyWeatherParams[counter].main = this.hourlyWeather.data.list[counter].main;
+      this.hourlyWeatherParams[counter].icon = 'assets/icon/weather-icons/' + this.hourlyWeather.data.list[counter].weather[0].icon + '@2x.png';
+    }
   }
 
 
