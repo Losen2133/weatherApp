@@ -4,7 +4,7 @@ import { LocationService } from 'src/app/services/location.service';
 import { PreferenceService } from 'src/app/services/preference.service';
 import { NavigationStart, Router } from '@angular/router';
 import { InitializationService } from 'src/app/services/initialization.service';
-import { firstValueFrom, Subscription } from 'rxjs';
+import { first, firstValueFrom, Subscription } from 'rxjs';
 import { SharedService } from 'src/app/services/shared.service';
 
 @Component({
@@ -31,6 +31,7 @@ export class CurrentweatherPage {
   currentWeatherParams: any = null;
   hourlyWeatherParams: any = null;
   dailyWeatherParams: any = null;
+  search: string = 'mandaue';
 
   loading: boolean = true;
 
@@ -51,11 +52,9 @@ export class CurrentweatherPage {
     });
   }
 
-  async checkForSettingsChange() {
-    this.userSettings = await this.preferenceService.getPreference('settings');
-  }
-
   private async loadData() {
+    this.userSettings = await this.preferenceService.getPreference('settings');
+
     this.locationService.startWatchingPosition();
     this.locationService.location$.subscribe(coords => {
       if(coords) {
@@ -70,14 +69,17 @@ export class CurrentweatherPage {
     this.assignCurrentWeatherParams();
     this.assignHourlyWeatherParams();
     this.assignDailyWeatherParams();
-    console.log(this.dailyWeatherParams);
 
 
     this.loading = false;
     console.log('Done loading!');
+
+    // this.searchWeather();
+    // console.log('Done Search');
   }
 
   assignCurrentWeatherParams() {
+    console.log(this.weatherData.currentWeather);
     this.currentWeatherParams = {};
     this.currentWeatherParams.tempFormat = this.weatherData.tempFormat
     this.currentWeatherParams.weather = this.weatherData.currentWeather?.data.weather[0];
@@ -87,6 +89,7 @@ export class CurrentweatherPage {
   }
 
   assignHourlyWeatherParams() {
+    console.log(this.weatherData.hourlyWeather);
     this.hourlyWeatherParams = [];
     for(let counter = 0;counter < 5;counter++) {
       this.hourlyWeatherParams[counter] = {};
@@ -100,6 +103,7 @@ export class CurrentweatherPage {
   }
 
   assignDailyWeatherParams() {
+    console.log(this.weatherData.dailyWeather);
     this.dailyWeatherParams = [];
     for(let counter = 0;counter < 5;counter++) {
       this.dailyWeatherParams[counter] = {};
@@ -128,5 +132,61 @@ export class CurrentweatherPage {
     return `${dayName}, ${formattedDate}`;
   }
 
+  async searchWeather() {
+    if(this.search === '') {
+      this.weatherData = await this.preferenceService.getPreference('weatherData');
+    } else {
+      
+      this.loading = true;
+      this.weatherData.tempFormat = this.userSettings.tempFormat;
+      await this.getCurrentWeatherByCityName(this.search);
+      await this.getHourlyWeatherByCityName(this.search);
+      await this.getDailyWeatherByCityName(this.search);
+      this.assignCurrentWeatherParams();
+      this.assignHourlyWeatherParams();
+      this.assignDailyWeatherParams();
+    }
+  }
 
+  async getCurrentWeatherByCityName(city: string) {
+    try {
+      const weatherData = await firstValueFrom(
+        this.weatherService.getCurrentWeatherByCityName(city, this.userSettings.tempFormat)
+      );
+
+      this.weatherData.currentWeather = this.weatherData.currentWeather ?? { data: null};
+      this.weatherData.currentWeather = weatherData
+    } catch(error) {
+      console.error('Error fetching current weather data as of the moment: ', error);
+      this.weatherData.currentWeather = null;
+    }
+  }
+
+  async getHourlyWeatherByCityName(city: string) {
+    try {
+      const weatherData = await firstValueFrom(
+        this.weatherService.getHourlyWeatherByCityName(city, 5, this.userSettings.tempFormat)
+      );
+
+      this.weatherData.hourlyWeather = this.weatherData.hourlyWeather ?? { data: null};
+      this.weatherData.hourlyWeather = weatherData
+    } catch(error) {
+      console.error('Error fetching hourly weather data as of this moment: ', error);
+      this.weatherData.hourlyWeather = null;
+    }
+  }
+
+  async getDailyWeatherByCityName(city: string) {
+    try {
+      const weatherData = await firstValueFrom(
+        this.weatherService.getDailyWeatherByCityName(city, 5, this.userSettings.tempFormat)
+      );
+
+      this.weatherData.dailyWeather = this.weatherData.dailyWeather ?? { data: null};
+      this.weatherData.dailyWeather = weatherData
+    } catch(error) {
+      console.error('Error fetching hourly weather data as of this moment: ', error);
+      this.weatherData.dailyWeather = null;
+    }
+  }
 }

@@ -44,7 +44,7 @@ export class AppComponent {
       this.isConnected = status.connected;
     })
 
-    await this.preferenceService.clearPreferences();
+    //await this.preferenceService.clearPreferences();
     this.userSettings = await this.preferenceService.getPreference('settings'); // User Settings
     if(this.userSettings === null) {
       console.log('Settings not set, initializing settings...');

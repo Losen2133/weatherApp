@@ -29,4 +29,19 @@ export class WeatherService {
     const url = `${this.hourlyWeatherApiUrl}?lat=${location.lat}&lon=${location.lon}&cnt=${count}&units=${units}&appid=${this.apiKey}`;
     return this.http.get(url);
   }
+
+  getCurrentWeatherByCityName(city: string, units: string = 'metric'): Observable<any> {
+    const url = `${this.currentWeatherApiUrl}?q=${city}&units=${units}&appid=${this.apiKey}`;
+    return this.http.get(url);
+  }  
+
+  getDailyWeatherByCityName(city: string, count: number = 0, units: string = 'metric'): Observable<any> {
+    const url = `${this.dailyWeatherApiUrl}?q=${city}&cnt=${count}&units=${units}&appid=${this.apiKey}`;
+    return this.http.get(url);
+  }
+
+  getHourlyWeatherByCityName(city: string, count: number = 0, units: string = 'metric'): Observable<any> {
+    const url = `${this.hourlyWeatherApiUrl}?q=${city}&cnt=${count}&units=${units}&appid=${this.apiKey}`;
+    return this.http.get(url);
+  }
 }

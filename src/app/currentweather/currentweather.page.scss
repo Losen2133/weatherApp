@@ -22,6 +22,8 @@
     display: flex;
     flex-direction: column;
     padding: 20px;
+    justify-content: center;
+    align-items: center;
     
     ion-spinner {
       align-self: center;
@@ -34,10 +36,10 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      margin-top: 10px;
   
       span.current-main-temp {
         font-size: 35px;
-        font-weight: bold;
       }
   
       ion-img {
@@ -58,9 +60,12 @@
       justify-content: flex-start;
       align-items: stretch;  // Let cards stretch full height
       padding: 10px;
-      margin-top: 20px;
       gap: 15px;
       -webkit-overflow-scrolling: touch;
+    }
+
+    h2.titles {
+        margin-top: 20px;
     }
   
     ion-card.hourly-weather,
@@ -89,6 +94,20 @@
     span.hourly-wind {
       margin-top: 5px;
     }
+
+    .spinner-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        width: 100%;
+        animation: fadeIn 0.3s ease-in-out;
+      }
+      
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
   
     // Media Queries
     @media (max-width: 768px) {
