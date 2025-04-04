@@ -5,6 +5,7 @@ import { PreferenceService } from 'src/app/services/preference.service';
 import { NavigationStart, Router } from '@angular/router';
 import { InitializationService } from 'src/app/services/initialization.service';
 import { firstValueFrom, Subscription } from 'rxjs';
+import { SharedService } from 'src/app/services/shared.service';
 
 @Component({
   selector: 'app-currentweather',
@@ -16,10 +17,17 @@ export class CurrentweatherPage {
   private initStatusSubscription: Subscription | undefined;
   userSettings: any;
   location: { lat: number; lon: number } | null = null;
-  currentWeather: any = null;
+  weatherData: {
+    currentWeather: { data: any; tempFormat: string } | null;
+    hourlyWeather: { data: any; tempFormat: string } | null;
+    dailyWeather: { data: any; tempFormat: string } | null;
+  } = {
+    currentWeather: null,
+    hourlyWeather: null,
+    dailyWeather: null,
+  };
   currentWeatherIcon: any = null 
   currentWeatherParams: any = null;
-  hourlyWeather: any = null;
   hourlyWeatherParams: any = null;
   previousPage: string | null = null;
 
@@ -30,7 +38,8 @@ export class CurrentweatherPage {
     private weatherService: WeatherService,
     private preferenceService: PreferenceService,
     private initService: InitializationService,
-    private  router: Router
+    private  router: Router,
+    private sharedService: SharedService
   ) {
     router.events.subscribe((event) => {
       if(event instanceof NavigationStart) {
@@ -64,9 +73,9 @@ export class CurrentweatherPage {
     });
     this.location = await this.locationService.getCurrentPosition();
 
-    this.currentWeather = await this.preferenceService.getPreference('currentWeather');
-    this.hourlyWeather = await this.preferenceService.getPreference('hourlyWeather');
-    console.log(this.hourlyWeather);
+    this.sharedService.weatherData$.subscribe(data => {
+      this.weatherData = data;
+    })
     this.assignCurrentWeatherParams();
     this.assignHourlyWeatherParams();
 
@@ -77,28 +86,27 @@ export class CurrentweatherPage {
 
   assignCurrentWeatherParams() {
     this.currentWeatherParams = {};
-    this.currentWeatherParams.tempFormat = this.currentWeather.tempFormat;
-    this.currentWeatherParams.weather = this.currentWeather.data.weather[0];
-    this.currentWeatherParams.wind = this.currentWeather.data.wind;
-    this.currentWeatherParams.main = this.currentWeather.data.main;
-    this.currentWeatherParams.icon = 'assets/icon/weather-icons/' + this.currentWeather.data.weather[0].icon + '.png';
+    this.currentWeatherParams.tempFormat = this.weatherData.currentWeather?.tempFormat
+    this.currentWeatherParams.weather = this.weatherData.currentWeather?.data.weather[0];
+    this.currentWeatherParams.wind = this.weatherData.currentWeather?.data.wind;
+    this.currentWeatherParams.main = this.weatherData.currentWeather?.data.main;
+    this.currentWeatherParams.icon = 'assets/icon/weather-icons/' + this.weatherData.currentWeather?.data.weather[0].icon + '.png';
   }
 
   assignHourlyWeatherParams() {
     this.hourlyWeatherParams = [];
     for(let counter = 0;counter < 5;counter++) {
       this.hourlyWeatherParams[counter] = {};
-      this.hourlyWeatherParams[counter].tempFormat = this.hourlyWeather.tempFormat;
-      this.hourlyWeatherParams[counter].dt = this.formatTimestamp(this.hourlyWeather.data.list[counter].dt * 1000);
-      this.hourlyWeatherParams[counter].weather = this.hourlyWeather.data.list[counter].weather[0];
-      this.hourlyWeatherParams[counter].wind = this.hourlyWeather.data.list[counter].wind;
-      this.hourlyWeatherParams[counter].main = this.hourlyWeather.data.list[counter].main;
-      this.hourlyWeatherParams[counter].icon = 'assets/icon/weather-icons/' + this.hourlyWeather.data.list[counter].weather[0].icon + '.png';
+      this.hourlyWeatherParams[counter].tempFormat = this.weatherData.hourlyWeather?.tempFormat;
+      this.hourlyWeatherParams[counter].dt = this.formatTimestamp(this.weatherData.hourlyWeather?.data.list[counter].dt * 1000);
+      this.hourlyWeatherParams[counter].weather = this.weatherData.hourlyWeather?.data.list[counter].weather[0];
+      this.hourlyWeatherParams[counter].wind = this.weatherData.hourlyWeather?.data.list[counter].wind;
+      this.hourlyWeatherParams[counter].main = this.weatherData.hourlyWeather?.data.list[counter].main;
+      this.hourlyWeatherParams[counter].icon = 'assets/icon/weather-icons/' + this.weatherData.hourlyWeather?.data.list[counter].weather[0].icon + '.png';
     }
   }
 
   formatTimestamp(timestamp: number) {
-    console.log("dt: ", timestamp)
     return new Date(timestamp).toLocaleString('en-US', {
       hour: 'numeric',
       minute: '2-digit',

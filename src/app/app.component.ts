@@ -5,6 +5,7 @@ import { PreferenceService } from './services/preference.service';
 import { Network } from '@capacitor/network';
 import { firstValueFrom } from 'rxjs';
 import { InitializationService } from './services/initialization.service';
+import { SharedService } from './services/shared.service';
 
 @Component({
   selector: 'app-root',
@@ -16,6 +17,17 @@ export class AppComponent {
   isConnected = false;
   userSettings: any;
   location: { lat: number, lon: number } | null = null;
+  weatherData: {
+    tempFormat: string | null;
+    currentWeather: { data: any; } | null;
+    hourlyWeather: { data: any; } | null;
+    dailyWeather: { data: any; } | null;
+  } = {
+    tempFormat: null,
+    currentWeather: null,
+    hourlyWeather: null,
+    dailyWeather: null,
+  };
   currentWeather: any = null;
   hourlyWeather: any = null;
   dailyWeather: any = null;
@@ -24,7 +36,8 @@ export class AppComponent {
     private locationService: LocationService,
     private weatherService: WeatherService,
     private preferenceService: PreferenceService,
-    private initService: InitializationService
+    private initService: InitializationService,
+    private sharedService: SharedService
   ) {}
 
   async ngOnInit() {
@@ -34,10 +47,6 @@ export class AppComponent {
       this.isConnected = status.connected;
     })
 
-    if(this.currentWeather === null) {
-      console.log('null here');
-    }
-
     await this.preferenceService.clearPreferences();
     this.userSettings = await this.preferenceService.getPreference('settings'); // User Settings
     if(this.userSettings === null) {
@@ -46,6 +55,7 @@ export class AppComponent {
       this.userSettings = await this.preferenceService.getPreference('settings');
       console.log('Settings Initialized', this.userSettings);
     }
+    this.sharedService.setUserSettings(this.userSettings);
 
     this.locationService.startWatchingPosition(); // Location Service
     this.locationService.location$.subscribe(coords => {
@@ -57,17 +67,18 @@ export class AppComponent {
     console.log('Current Location: ', this.location);
 
     if(this.isConnected) {
+      this.weatherData.tempFormat = this.userSettings.tempFormat;
+
       await this.getCurrentWeather();
-      console.log('Current Weather: ', this.currentWeather);
-      await this.preferenceService.createPreference('currentWeather', this.currentWeather);
-
       await this.getHourlyWeather();
-      console.log('Hourly Weather: ', this.hourlyWeather);
-      await this.preferenceService.createPreference('hourlyWeather', this.hourlyWeather);
-
       await this.getDailyWeather();
-      console.log('Daily Weather: ', this.dailyWeather);
-      await this.preferenceService.createPreference('dailyWeather', this.dailyWeather);
+      console.log(this.weatherData);
+      
+      this.sharedService.setWeatherData(this.weatherData);
+      await this.preferenceService.createPreference('weatherData', this.weatherData);
+    } else {
+      this.weatherData = await this.preferenceService.getPreference('weatherData');
+      this.sharedService.setWeatherData(this.weatherData);
     }
 
     this.initService.initComplete();
@@ -100,12 +111,12 @@ export class AppComponent {
         this.weatherService.getCurrentWeather(this.location, this.userSettings.tempFormat)
       );
 
-      this.currentWeather = this.currentWeather ?? {};
-      this.currentWeather.data = weatherData;
-      this.currentWeather.tempFormat = this.userSettings.tempFormat;
+
+      this.weatherData.currentWeather = this.weatherData.currentWeather ?? { data: null };
+      this.weatherData.currentWeather.data = weatherData;
     } catch(error) {
       console.error('Error fetching current weather data as of the moment: ', error);
-      this.currentWeather = null;
+      this.weatherData.currentWeather = null;
     }
   }
 
@@ -120,12 +131,11 @@ export class AppComponent {
         this.weatherService.getHourlyWeather(this.location, 5, this.userSettings.tempFormat)
       );
 
-      this.hourlyWeather = this.hourlyWeather ?? {};
-      this.hourlyWeather.data = weatherData;
-      this.hourlyWeather.tempFormat = this.userSettings.tempFormat;
+      this.weatherData.hourlyWeather = this.weatherData.hourlyWeather ?? { data: null };
+      this.weatherData.hourlyWeather.data = weatherData;
     } catch(error) {
       console.error('Error fetching hourly weather data as of this moment: ', error);
-      this.hourlyWeather = null;
+      this.weatherData.hourlyWeather = null;
     }
   }
 
@@ -140,12 +150,11 @@ export class AppComponent {
         this.weatherService.getDailyWeather(this.location, 5, this.userSettings.tempFormat)
       );
 
-      this.dailyWeather = this.dailyWeather ?? {};
-      this.dailyWeather.data = weatherData;
-      this.dailyWeather.tempFormat = this.userSettings.tempFormat;      
+      this.weatherData.dailyWeather = this.weatherData.dailyWeather ?? { data: null };
+      this.weatherData.dailyWeather.data = weatherData;  
     } catch(error) {
       console.error('Error fetching daily weather data as of this moment: ', error);
-      this.dailyWeather = null;
+      this.weatherData.dailyWeather = null;
     }
   }
 
