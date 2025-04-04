@@ -28,9 +28,6 @@ export class AppComponent {
     hourlyWeather: null,
     dailyWeather: null,
   };
-  currentWeather: any = null;
-  hourlyWeather: any = null;
-  dailyWeather: any = null;
 
   constructor(
     private locationService: LocationService,

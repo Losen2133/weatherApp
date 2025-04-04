@@ -18,18 +18,19 @@ export class CurrentweatherPage {
   userSettings: any;
   location: { lat: number; lon: number } | null = null;
   weatherData: {
-    currentWeather: { data: any; tempFormat: string } | null;
-    hourlyWeather: { data: any; tempFormat: string } | null;
-    dailyWeather: { data: any; tempFormat: string } | null;
+    tempFormat: string | null;
+    currentWeather: { data: any; } | null;
+    hourlyWeather: { data: any; } | null;
+    dailyWeather: { data: any; } | null;
   } = {
+    tempFormat: null,
     currentWeather: null,
     hourlyWeather: null,
     dailyWeather: null,
   };
-  currentWeatherIcon: any = null 
   currentWeatherParams: any = null;
   hourlyWeatherParams: any = null;
-  previousPage: string | null = null;
+  dailyWeatherParams: any = null;
 
   loading: boolean = true;
 
@@ -38,18 +39,8 @@ export class CurrentweatherPage {
     private weatherService: WeatherService,
     private preferenceService: PreferenceService,
     private initService: InitializationService,
-    private  router: Router,
     private sharedService: SharedService
   ) {
-    router.events.subscribe((event) => {
-      if(event instanceof NavigationStart) {
-        this.previousPage = router.url;
-
-        if(this.previousPage === '/settings') {
-          console.log('Navigated from: ', this.previousPage);
-        }
-      }
-    })
   }
 
   async ngOnInit() {
@@ -78,6 +69,8 @@ export class CurrentweatherPage {
     })
     this.assignCurrentWeatherParams();
     this.assignHourlyWeatherParams();
+    this.assignDailyWeatherParams();
+    console.log(this.dailyWeatherParams);
 
 
     this.loading = false;
@@ -86,7 +79,7 @@ export class CurrentweatherPage {
 
   assignCurrentWeatherParams() {
     this.currentWeatherParams = {};
-    this.currentWeatherParams.tempFormat = this.weatherData.currentWeather?.tempFormat
+    this.currentWeatherParams.tempFormat = this.weatherData.tempFormat
     this.currentWeatherParams.weather = this.weatherData.currentWeather?.data.weather[0];
     this.currentWeatherParams.wind = this.weatherData.currentWeather?.data.wind;
     this.currentWeatherParams.main = this.weatherData.currentWeather?.data.main;
@@ -97,8 +90,8 @@ export class CurrentweatherPage {
     this.hourlyWeatherParams = [];
     for(let counter = 0;counter < 5;counter++) {
       this.hourlyWeatherParams[counter] = {};
-      this.hourlyWeatherParams[counter].tempFormat = this.weatherData.hourlyWeather?.tempFormat;
-      this.hourlyWeatherParams[counter].dt = this.formatTimestamp(this.weatherData.hourlyWeather?.data.list[counter].dt * 1000);
+      this.hourlyWeatherParams[counter].tempFormat = this.weatherData.tempFormat;
+      this.hourlyWeatherParams[counter].dt = this.formatTimestampToTime(this.weatherData.hourlyWeather?.data.list[counter].dt * 1000);
       this.hourlyWeatherParams[counter].weather = this.weatherData.hourlyWeather?.data.list[counter].weather[0];
       this.hourlyWeatherParams[counter].wind = this.weatherData.hourlyWeather?.data.list[counter].wind;
       this.hourlyWeatherParams[counter].main = this.weatherData.hourlyWeather?.data.list[counter].main;
@@ -106,12 +99,33 @@ export class CurrentweatherPage {
     }
   }
 
-  formatTimestamp(timestamp: number) {
+  assignDailyWeatherParams() {
+    this.dailyWeatherParams = [];
+    for(let counter = 0;counter < 5;counter++) {
+      this.dailyWeatherParams[counter] = {};
+      this.dailyWeatherParams[counter].tempFormat = this.weatherData.tempFormat;
+      this.dailyWeatherParams[counter].dt = this.formatTimestampToString(this.weatherData.dailyWeather?.data.list[counter].dt * 1000);
+      this.dailyWeatherParams[counter].weather = this.weatherData.dailyWeather?.data.list[counter].weather[0];
+      this.dailyWeatherParams[counter].temp = this.weatherData.dailyWeather?.data.list[counter].temp;
+      this.dailyWeatherParams[counter].main = this.weatherData.dailyWeather?.data.list[counter].main;
+      this.dailyWeatherParams[counter].icon = 'assets/icon/weather-icons/' + this.weatherData.dailyWeather?.data.list[counter].weather[0].icon + '.png';
+    }
+  }
+
+  formatTimestampToTime(timestamp: number) {
     return new Date(timestamp).toLocaleString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true
     });
+  }
+
+  formatTimestampToString(timestamp: number): string {
+    const date = new Date(timestamp);
+    const formattedDate = `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
+    const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const dayName = daysOfWeek[date.getDay()];
+    return `${dayName}, ${formattedDate}`;
   }
 
 
