@@ -17,6 +17,11 @@ div.container {
         span.current-main-temp {
             font-size: 35px;
         }
+
+        ion-img{
+            width: 200px;
+            height: 200px;
+        }
         
     }
 
@@ -42,6 +47,13 @@ div.container {
             span.hourly-main-temp {
                 font-size: 15px;
             }
+
+            ion-img {
+                width: 100px;
+                height: 100px;
+            }
+
+            
         }
     }
 }

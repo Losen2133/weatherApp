@@ -6,12 +6,14 @@
     <ion-spinner *ngIf="loading"></ion-spinner>
     <ion-card class="current-weather" *ngIf="!loading">
       <ion-img class="current-weather-icon" [src]="currentWeatherParams.icon" alt="current-weather-icon" *ngIf="!loading"></ion-img>
+      <span class="current-weather-desc">{{ currentWeatherParams.weather.description }}</span>
       <span class="current-main-temp">{{ currentWeatherParams.main.temp }}&deg;</span>
     </ion-card>
     <div class="hourly-container">
       <ion-card class="hourly-weather" *ngFor="let weather of hourlyWeatherParams">
         <span class="hourly-dt">{{ weather.dt }}</span>
         <ion-img class="hourly-weather-icon" [src]="weather.icon" alt="hourly-weather-icon"></ion-img>
+        <span class="hourly-weather-desc">{{ weather.weather.description }}</span>
         <span class="hourly-main-temp">{{ weather.main.temp }}&deg;</span>
       </ion-card>
     </div>

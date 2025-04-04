@@ -81,7 +81,7 @@ export class CurrentweatherPage {
     this.currentWeatherParams.weather = this.currentWeather.data.weather[0];
     this.currentWeatherParams.wind = this.currentWeather.data.wind;
     this.currentWeatherParams.main = this.currentWeather.data.main;
-    this.currentWeatherParams.icon = 'assets/icon/weather-icons/' + this.currentWeather.data.weather[0].icon + '@2x.png';
+    this.currentWeatherParams.icon = 'assets/icon/weather-icons/' + this.currentWeather.data.weather[0].icon + '.png';
   }
 
   assignHourlyWeatherParams() {
@@ -93,7 +93,7 @@ export class CurrentweatherPage {
       this.hourlyWeatherParams[counter].weather = this.hourlyWeather.data.list[counter].weather[0];
       this.hourlyWeatherParams[counter].wind = this.hourlyWeather.data.list[counter].wind;
       this.hourlyWeatherParams[counter].main = this.hourlyWeather.data.list[counter].main;
-      this.hourlyWeatherParams[counter].icon = 'assets/icon/weather-icons/' + this.hourlyWeather.data.list[counter].weather[0].icon + '@2x.png';
+      this.hourlyWeatherParams[counter].icon = 'assets/icon/weather-icons/' + this.hourlyWeather.data.list[counter].weather[0].icon + '.png';
     }
   }
 
