@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { WeatherService } from 'src/app/services/weather.service';
 import { LocationService } from 'src/app/services/location.service';
 import { PreferenceService } from 'src/app/services/preference.service';
@@ -17,17 +17,44 @@ export class CurrentweatherPage {
   private initStatusSubscription: Subscription | undefined;
   userSettings: any;
   location: { lat: number; lon: number } | null = null;
+  
   weatherData: {
     tempFormat: string | null;
-    currentWeather: { data: any; } | null;
-    hourlyWeather: { data: any; } | null;
-    dailyWeather: { data: any; } | null;
+    currentWeather: {
+      tempFormat: any,
+      weather: any,
+      wind: any,
+      main: any,
+      icon: string
+    } | null;
+    hourlyWeather: {
+      tempFormat: any,
+      list: {
+        dt: string,
+        weather: any,
+        wind: any,
+        main: any,
+        icon: string
+      }[];
+      
+    } | null;
+    dailyWeather: {
+      tempFormat: any,
+      list: {
+        dt: string;
+        temp: any;
+        weather: any;
+        main?: any;
+        icon?: string;
+      }[];
+    } | null;
   } = {
     tempFormat: null,
     currentWeather: null,
     hourlyWeather: null,
     dailyWeather: null,
   };
+
   currentWeatherParams: any = null;
   hourlyWeatherParams: any = null;
   dailyWeatherParams: any = null;
@@ -40,7 +67,8 @@ export class CurrentweatherPage {
     private weatherService: WeatherService,
     private preferenceService: PreferenceService,
     private initService: InitializationService,
-    private sharedService: SharedService
+    private sharedService: SharedService,
+    private cdRef: ChangeDetectorRef
   ) {
   }
 
@@ -74,45 +102,59 @@ export class CurrentweatherPage {
     this.loading = false;
     console.log('Done loading!');
 
-    // this.searchWeather();
+    // await this.searchWeather();
     // console.log('Done Search');
   }
 
   assignCurrentWeatherParams() {
-    console.log(this.weatherData.currentWeather);
-    this.currentWeatherParams = {};
-    this.currentWeatherParams.tempFormat = this.weatherData.tempFormat
-    this.currentWeatherParams.weather = this.weatherData.currentWeather?.data.weather[0];
-    this.currentWeatherParams.wind = this.weatherData.currentWeather?.data.wind;
-    this.currentWeatherParams.main = this.weatherData.currentWeather?.data.main;
-    this.currentWeatherParams.icon = 'assets/icon/weather-icons/' + this.weatherData.currentWeather?.data.weather[0].icon + '.png';
+    this.currentWeatherParams = {
+      tempFormat: this.weatherData.tempFormat,
+      weather: this.weatherData.currentWeather?.weather[0],
+      wind: this.weatherData.currentWeather?.wind,
+      main: this.weatherData.currentWeather?.main,
+      icon: 'assets/icon/weather-icons/' + this.weatherData.currentWeather?.weather[0].icon + '.png',
+    };
   }
 
   assignHourlyWeatherParams() {
-    console.log(this.weatherData.hourlyWeather);
+    if (!this.weatherData.hourlyWeather?.list) return;
+  
     this.hourlyWeatherParams = [];
-    for(let counter = 0;counter < 5;counter++) {
-      this.hourlyWeatherParams[counter] = {};
-      this.hourlyWeatherParams[counter].tempFormat = this.weatherData.tempFormat;
-      this.hourlyWeatherParams[counter].dt = this.formatTimestampToTime(this.weatherData.hourlyWeather?.data.list[counter].dt * 1000);
-      this.hourlyWeatherParams[counter].weather = this.weatherData.hourlyWeather?.data.list[counter].weather[0];
-      this.hourlyWeatherParams[counter].wind = this.weatherData.hourlyWeather?.data.list[counter].wind;
-      this.hourlyWeatherParams[counter].main = this.weatherData.hourlyWeather?.data.list[counter].main;
-      this.hourlyWeatherParams[counter].icon = 'assets/icon/weather-icons/' + this.weatherData.hourlyWeather?.data.list[counter].weather[0].icon + '.png';
+  
+    for (let counter = 0; counter < 5; counter++) {
+      const hour = this.weatherData.hourlyWeather.list[counter];
+  
+      if (!hour || typeof hour.dt !== 'number') continue;
+  
+      this.hourlyWeatherParams[counter] = {
+        tempFormat: this.weatherData.tempFormat,
+        dt: this.formatTimestampToTime(hour.dt * 1000),
+        weather: hour.weather?.[0],
+        wind: hour.wind,
+        main: hour.main,
+        icon: 'assets/icon/weather-icons/' + (hour.weather?.[0]?.icon ?? '01d') + '.png',
+      };
     }
   }
 
   assignDailyWeatherParams() {
-    console.log(this.weatherData.dailyWeather);
+    if (!this.weatherData.dailyWeather?.list) return;
+  
     this.dailyWeatherParams = [];
-    for(let counter = 0;counter < 5;counter++) {
-      this.dailyWeatherParams[counter] = {};
-      this.dailyWeatherParams[counter].tempFormat = this.weatherData.tempFormat;
-      this.dailyWeatherParams[counter].dt = this.formatTimestampToString(this.weatherData.dailyWeather?.data.list[counter].dt * 1000);
-      this.dailyWeatherParams[counter].weather = this.weatherData.dailyWeather?.data.list[counter].weather[0];
-      this.dailyWeatherParams[counter].temp = this.weatherData.dailyWeather?.data.list[counter].temp;
-      this.dailyWeatherParams[counter].main = this.weatherData.dailyWeather?.data.list[counter].main;
-      this.dailyWeatherParams[counter].icon = 'assets/icon/weather-icons/' + this.weatherData.dailyWeather?.data.list[counter].weather[0].icon + '.png';
+  
+    for (let counter = 0; counter < 5; counter++) {
+      const day = this.weatherData.dailyWeather.list[counter];
+  
+      if (!day || typeof day.dt !== 'number') continue;
+  
+      this.dailyWeatherParams[counter] = {
+        tempFormat: this.weatherData.tempFormat,
+        dt: this.formatTimestampToString(day.dt * 1000),
+        weather: day.weather?.[0],
+        temp: day.temp,
+        main: day.main,
+        icon: 'assets/icon/weather-icons/' + (day.weather?.[0]?.icon ?? '01d') + '.png',
+      };
     }
   }
 
@@ -139,54 +181,33 @@ export class CurrentweatherPage {
       
       this.loading = true;
       this.weatherData.tempFormat = this.userSettings.tempFormat;
-      await this.getCurrentWeatherByCityName(this.search);
-      await this.getHourlyWeatherByCityName(this.search);
-      await this.getDailyWeatherByCityName(this.search);
+      await this.getWeatherDataByCityName(this.search);
+      this.sharedService.setWeatherData(this.weatherData);
       this.assignCurrentWeatherParams();
       this.assignHourlyWeatherParams();
       this.assignDailyWeatherParams();
+      this.loading= false;
+      this.cdRef.detectChanges();
+      console.log(this.weatherData);
     }
   }
 
-  async getCurrentWeatherByCityName(city: string) {
-    try {
-      const weatherData = await firstValueFrom(
-        this.weatherService.getCurrentWeatherByCityName(city, this.userSettings.tempFormat)
-      );
+  async getWeatherDataByCityName(city: string) {
+    try{
+      const [current, hourly, daily] = await Promise.all([
+        firstValueFrom(this.weatherService.getCurrentWeatherByCityName(city, this.userSettings.tempFormat)),
+        firstValueFrom(this.weatherService.getHourlyWeatherByCityName(city, 5, this.userSettings.tempFormat)),
+        firstValueFrom(this.weatherService.getDailyWeatherByCityName(city, 5, this.userSettings.tempFormat))
+      ]);
 
-      this.weatherData.currentWeather = this.weatherData.currentWeather ?? { data: null};
-      this.weatherData.currentWeather = weatherData
+      this.weatherData = {
+        tempFormat: this.userSettings.tempFormat,
+        currentWeather: current,
+        hourlyWeather: hourly,
+        dailyWeather: daily
+      }
     } catch(error) {
-      console.error('Error fetching current weather data as of the moment: ', error);
-      this.weatherData.currentWeather = null;
-    }
-  }
-
-  async getHourlyWeatherByCityName(city: string) {
-    try {
-      const weatherData = await firstValueFrom(
-        this.weatherService.getHourlyWeatherByCityName(city, 5, this.userSettings.tempFormat)
-      );
-
-      this.weatherData.hourlyWeather = this.weatherData.hourlyWeather ?? { data: null};
-      this.weatherData.hourlyWeather = weatherData
-    } catch(error) {
-      console.error('Error fetching hourly weather data as of this moment: ', error);
-      this.weatherData.hourlyWeather = null;
-    }
-  }
-
-  async getDailyWeatherByCityName(city: string) {
-    try {
-      const weatherData = await firstValueFrom(
-        this.weatherService.getDailyWeatherByCityName(city, 5, this.userSettings.tempFormat)
-      );
-
-      this.weatherData.dailyWeather = this.weatherData.dailyWeather ?? { data: null};
-      this.weatherData.dailyWeather = weatherData
-    } catch(error) {
-      console.error('Error fetching hourly weather data as of this moment: ', error);
-      this.weatherData.dailyWeather = null;
+      console.error('Error fetching weather data by city name as of the moment: ', error);
     }
   }
 }
