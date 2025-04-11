@@ -2,9 +2,9 @@ import { ChangeDetectorRef, Component } from '@angular/core';
 import { WeatherService } from 'src/app/services/weather.service';
 import { LocationService } from 'src/app/services/location.service';
 import { PreferenceService } from 'src/app/services/preference.service';
-import { NavigationStart, Router } from '@angular/router';
+
 import { InitializationService } from 'src/app/services/initialization.service';
-import { first, firstValueFrom, Subscription } from 'rxjs';
+import { firstValueFrom, Subscription } from 'rxjs';
 import { SharedService } from 'src/app/services/shared.service';
 
 @Component({
@@ -16,8 +16,7 @@ import { SharedService } from 'src/app/services/shared.service';
 export class CurrentweatherPage {
   private initStatusSubscription: Subscription | undefined;
   userSettings: any;
-  location: { lat: number; lon: number } | null = null;
-  
+  location: { lat: number, lon: number } | null = null;
   weatherData: {
     tempFormat: string | null;
     currentWeather: {
@@ -58,7 +57,7 @@ export class CurrentweatherPage {
   currentWeatherParams: any = null;
   hourlyWeatherParams: any = null;
   dailyWeatherParams: any = null;
-  search: string = 'mandaue';
+  search: string = '';
 
   loading: boolean = true;
 
@@ -73,6 +72,10 @@ export class CurrentweatherPage {
   }
 
   async ngOnInit() {
+    
+  }
+
+  ionViewWillEnter() {
     this.initStatusSubscription = this.initService.getInitStatus().subscribe(isInitialized => {
       if(isInitialized) {
         this.loadData()
@@ -83,27 +86,18 @@ export class CurrentweatherPage {
   private async loadData() {
     this.userSettings = await this.preferenceService.getPreference('settings');
 
-    this.locationService.startWatchingPosition();
-    this.locationService.location$.subscribe(coords => {
-      if(coords) {
-        this.location = coords;
-      }
-    });
-    this.location = await this.locationService.getCurrentPosition();
-
     this.sharedService.weatherData$.subscribe(data => {
       this.weatherData = data;
+      this.assignCurrentWeatherParams();
+      this.assignHourlyWeatherParams();
+      this.assignDailyWeatherParams();
     })
-    this.assignCurrentWeatherParams();
-    this.assignHourlyWeatherParams();
-    this.assignDailyWeatherParams();
-
-
+    console.log('Weather Data: ', this.weatherData);
     this.loading = false;
     console.log('Done loading!');
 
-    // await this.searchWeather();
-    // console.log('Done Search');
+    await this.searchWeather();
+    console.log('Done Search');
   }
 
   assignCurrentWeatherParams() {
@@ -209,5 +203,33 @@ export class CurrentweatherPage {
     } catch(error) {
       console.error('Error fetching weather data by city name as of the moment: ', error);
     }
+  }
+
+  async getWeatherData() {
+    if(!this.location) {
+      alert('Cannot get weather data as of this moment!');
+      return;
+    }
+
+    try {
+      const [current, hourly, daily] = await Promise.all([
+        firstValueFrom(this.weatherService.getCurrentWeather(this.location, this.userSettings.tempFormat)),
+        firstValueFrom(this.weatherService.getHourlyWeather(this.location, this.userSettings.tempFormat)),
+        firstValueFrom(this.weatherService.getDailyWeather(this.location, this.userSettings.tempFormat))
+      ]);
+
+      this.weatherData = {
+        tempFormat: this.userSettings.tempFormat,
+        currentWeather: current,
+        hourlyWeather: hourly,
+        dailyWeather: daily
+      }
+    } catch(error) {
+      console.error('Error fetching weather data as of this moment: ', error);
+    }
+  }
+
+  async onSearch() {
+    await this.searchWeather();
   }
 }

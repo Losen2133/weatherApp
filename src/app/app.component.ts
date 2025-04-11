@@ -45,36 +45,11 @@ export class AppComponent {
     })
 
     //await this.preferenceService.clearPreferences();
-    this.userSettings = await this.preferenceService.getPreference('settings'); // User Settings
-    if(this.userSettings === null) {
-      console.log('Settings not set, initializing settings...');
-      this.initUserSettings();
-      this.userSettings = await this.preferenceService.getPreference('settings');
-      console.log('Settings Initialized', this.userSettings);
-    }
-    this.sharedService.setUserSettings(this.userSettings);
-
-    this.locationService.startWatchingPosition(); // Location Service
-    this.locationService.location$.subscribe(coords => {
-      if(coords) {
-        this.location = coords;
-      }
-    });
+    await this.setUserSettings();
+  
     this.location = await this.locationService.getCurrentPosition();
-    console.log('Current Location: ', this.location);
-
-    if(this.isConnected) {
-      this.weatherData.tempFormat = this.userSettings.tempFormat;
-
-      await this.getWeatherData();
-      console.log(this.weatherData);
-      
-      this.sharedService.setWeatherData(this.weatherData);
-      await this.preferenceService.createPreference('weatherData', this.weatherData);
-    } else {
-      this.weatherData = await this.preferenceService.getPreference('weatherData');
-      this.sharedService.setWeatherData(this.weatherData);
-    }
+    
+    await this.fetchWeather();
 
     this.initService.initComplete();
     console.log('Initialization Complete!!');
@@ -92,6 +67,32 @@ export class AppComponent {
     }
 
     await this.preferenceService.createPreference('settings', setting);
+  }
+
+  async setUserSettings() {
+    this.userSettings = await this.preferenceService.getPreference('settings'); // User Settings
+    if(this.userSettings === null) {
+      console.log('Settings not set, initializing settings...');
+      this.initUserSettings();
+      this.userSettings = await this.preferenceService.getPreference('settings');
+      console.log('Settings Initialized', this.userSettings);
+    }
+    this.sharedService.setUserSettings(this.userSettings);
+  }
+
+  async fetchWeather() {
+    if(this.isConnected) {
+      this.weatherData.tempFormat = this.userSettings.tempFormat;
+
+      await this.getWeatherData();
+      console.log(this.weatherData);
+      
+      this.sharedService.setWeatherData(this.weatherData);
+      await this.preferenceService.createPreference('weatherData', this.weatherData);
+    } else {
+      this.weatherData = await this.preferenceService.getPreference('weatherData');
+      this.sharedService.setWeatherData(this.weatherData);
+    }
   }
 
   async getWeatherData() {

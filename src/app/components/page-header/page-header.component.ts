@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
 import { Router } from '@angular/router';
 
@@ -10,7 +10,6 @@ import { Router } from '@angular/router';
   styleUrls: ['./page-header.component.scss'],
 })
 export class PageHeaderComponent  implements OnInit {
-
   constructor(private router: Router) { }
 
   ngOnInit() {}
