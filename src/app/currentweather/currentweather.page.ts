@@ -58,6 +58,7 @@ export class CurrentweatherPage {
   hourlyWeatherParams: any = null;
   dailyWeatherParams: any = null;
   search: string = '';
+  searched: string = '';
 
   loading: boolean = true;
 
@@ -78,6 +79,8 @@ export class CurrentweatherPage {
   ionViewWillEnter() {
     this.initStatusSubscription = this.initService.getInitStatus().subscribe(isInitialized => {
       if(isInitialized) {
+        this.search = '';
+        this.searched = '';
         this.loadData()
       }
     });
@@ -95,9 +98,6 @@ export class CurrentweatherPage {
     console.log('Weather Data: ', this.weatherData);
     this.loading = false;
     console.log('Done loading!');
-
-    await this.searchWeather();
-    console.log('Done Search');
   }
 
   assignCurrentWeatherParams() {
@@ -169,17 +169,20 @@ export class CurrentweatherPage {
   }
 
   async searchWeather() {
+    this.searched = this.search;
     if(this.search === '') {
+      this.loading = true;
       this.weatherData = await this.preferenceService.getPreference('weatherData');
+      this.sharedService.setWeatherData(this.weatherData);
+      this.loading= false;
+      this.cdRef.detectChanges();
+      console.log(this.weatherData);
     } else {
       
       this.loading = true;
       this.weatherData.tempFormat = this.userSettings.tempFormat;
       await this.getWeatherDataByCityName(this.search);
       this.sharedService.setWeatherData(this.weatherData);
-      this.assignCurrentWeatherParams();
-      this.assignHourlyWeatherParams();
-      this.assignDailyWeatherParams();
       this.loading= false;
       this.cdRef.detectChanges();
       console.log(this.weatherData);
@@ -214,8 +217,8 @@ export class CurrentweatherPage {
     try {
       const [current, hourly, daily] = await Promise.all([
         firstValueFrom(this.weatherService.getCurrentWeather(this.location, this.userSettings.tempFormat)),
-        firstValueFrom(this.weatherService.getHourlyWeather(this.location, this.userSettings.tempFormat)),
-        firstValueFrom(this.weatherService.getDailyWeather(this.location, this.userSettings.tempFormat))
+        firstValueFrom(this.weatherService.getHourlyWeather(this.location, 5, this.userSettings.tempFormat)),
+        firstValueFrom(this.weatherService.getDailyWeather(this.location, 5, this.userSettings.tempFormat))
       ]);
 
       this.weatherData = {
