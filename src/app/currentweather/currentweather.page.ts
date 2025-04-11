@@ -6,6 +6,7 @@ import { PreferenceService } from 'src/app/services/preference.service';
 import { InitializationService } from 'src/app/services/initialization.service';
 import { firstValueFrom, Subscription } from 'rxjs';
 import { SharedService } from 'src/app/services/shared.service';
+import { ThemeService } from '../services/theme.service';
 
 @Component({
   selector: 'app-currentweather',
@@ -15,6 +16,7 @@ import { SharedService } from 'src/app/services/shared.service';
 })
 export class CurrentweatherPage {
   private initStatusSubscription: Subscription | undefined;
+  isConnected: boolean = false;
   userSettings: any;
   location: { lat: number, lon: number } | null = null;
   weatherData: {
@@ -63,12 +65,12 @@ export class CurrentweatherPage {
   loading: boolean = true;
 
   constructor(
-    private locationService: LocationService,
     private weatherService: WeatherService,
     private preferenceService: PreferenceService,
     private initService: InitializationService,
     private sharedService: SharedService,
-    private cdRef: ChangeDetectorRef
+    private cdRef: ChangeDetectorRef,
+    private themeService: ThemeService
   ) {
   }
 
@@ -88,6 +90,12 @@ export class CurrentweatherPage {
 
   private async loadData() {
     this.userSettings = await this.preferenceService.getPreference('settings');
+
+    this.themeService.toggleChange(this.userSettings.darkMode);
+
+    this.sharedService.connectionStatus$.subscribe(data => {
+      this.isConnected = data;
+    })
 
     this.sharedService.weatherData$.subscribe(data => {
       this.weatherData = data;

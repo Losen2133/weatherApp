@@ -86,6 +86,7 @@ export class SettingsPage implements OnInit {
     this.settings.darkMode = this.darkMode;
     this.themeService.toggleChange(this.darkMode);
     await this.preferenceService.createPreference('settings' ,this.settings);
+    await this.preferenceService.createPreference('weatherData', this.weatherData);
   }
 
   async fetchWeather() {

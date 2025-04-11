@@ -58,6 +58,7 @@ export class AppComponent {
   async checkNetworkStatus() {
     const status = await Network.getStatus();
     this.isConnected = status.connected;
+    this.sharedService.setConnection(this.isConnected);
   }
 
   async initUserSettings() {
