@@ -1,12 +1,12 @@
 import { ChangeDetectorRef, Component } from '@angular/core';
 import { WeatherService } from 'src/app/services/weather.service';
-import { LocationService } from 'src/app/services/location.service';
 import { PreferenceService } from 'src/app/services/preference.service';
 
 import { InitializationService } from 'src/app/services/initialization.service';
 import { firstValueFrom, Subscription } from 'rxjs';
 import { SharedService } from 'src/app/services/shared.service';
 import { ThemeService } from '../services/theme.service';
+import { Network } from '@capacitor/network';
 
 @Component({
   selector: 'app-currentweather',
@@ -94,7 +94,11 @@ export class CurrentweatherPage {
     this.themeService.toggleChange(this.userSettings.darkMode);
 
     this.sharedService.connectionStatus$.subscribe(data => {
-      this.isConnected = data;
+      if(this.isConnected != data) {
+        this.isConnected = data;
+      }
+      
+      
     })
 
     this.sharedService.weatherData$.subscribe(data => {

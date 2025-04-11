@@ -6,6 +6,7 @@ import { Network } from '@capacitor/network';
 import { firstValueFrom } from 'rxjs';
 import { InitializationService } from './services/initialization.service';
 import { SharedService } from './services/shared.service';
+import { ToastController } from '@ionic/angular';
 
 @Component({
   selector: 'app-root',
@@ -34,14 +35,24 @@ export class AppComponent {
     private weatherService: WeatherService,
     private preferenceService: PreferenceService,
     private initService: InitializationService,
-    private sharedService: SharedService
+    private sharedService: SharedService,
+    private toastController: ToastController
   ) {}
 
   async ngOnInit() {
     await this.checkNetworkStatus();
 
     Network.addListener('networkStatusChange', status => {
-      this.isConnected = status.connected;
+      if(this.isConnected != status.connected) {
+        this.isConnected = status.connected;
+        this.sharedService.setConnection(this.isConnected);
+        if(status.connected) {
+          this.presentToast('Connection: Online');
+        } else {
+          this.presentToast('Connection: Offline');
+        }
+      }
+      
     })
 
     //await this.preferenceService.clearPreferences();
@@ -55,10 +66,20 @@ export class AppComponent {
     console.log('Initialization Complete!!');
   }
 
+  async presentToast(message: string) {
+    const toast = await this.toastController.create({
+      message: message,
+      duration: 3000,
+      position: 'bottom',
+    });
+
+    await toast.present();
+  }
+
   async checkNetworkStatus() {
     const status = await Network.getStatus();
     this.isConnected = status.connected;
-    this.sharedService.setConnection(this.isConnected);
+    
   }
 
   async initUserSettings() {
