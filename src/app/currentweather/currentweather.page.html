@@ -2,12 +2,26 @@
 
 <ion-content [fullscreen]="true">
   <div class="container">
-    
+
     <div class="spinner-wrapper" *ngIf="loading">
       <ion-spinner name="crescent"></ion-spinner>
     </div>
 
     <ng-container *ngIf="!loading">
+      <div class="search-bar">
+        <ion-input
+          label="City Name: "
+          [(ngModel)]="search"
+          fill="outline"
+          debounce="500"
+          placeholder="Enter city name"
+        ></ion-input>
+        <ion-button (click)="onSearch()">
+          <ion-icon name="search-outline"></ion-icon>
+        </ion-button>
+      </div>
+
+      <h1 class="city-name" *ngIf="searched">City: {{searched}}</h1>
       <h2 class="titles">Current Weather</h2>
       <ion-card class="current-weather">
         <ion-img class="current-weather-icon" [src]="currentWeatherParams.icon" alt="current-weather-icon"></ion-img>
@@ -23,7 +37,7 @@
         </span>
         <span class="current-humidity"><b>Humidity: </b>{{ currentWeatherParams.main.humidity }}%</span>
       </ion-card>
-  
+
       <h2 class="titles">Report by the Hour</h2>
       <div class="hourly-container">
         <ion-card class="hourly-weather" *ngFor="let weather of hourlyWeatherParams">
@@ -55,6 +69,5 @@
         </ion-card>
       </div>
     </ng-container>
-
   </div>
 </ion-content>

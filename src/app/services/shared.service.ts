@@ -11,6 +11,9 @@ export class SharedService {
   private userSettingsSource = new BehaviorSubject<any>(null);
   userSettings$ = this.userSettingsSource.asObservable();
 
+  private connectionSource = new BehaviorSubject<any>(null);
+  connectionStatus$ = this.connectionSource.asObservable();
+
   constructor() { }
 
   setWeatherData(data: any) {
@@ -19,5 +22,9 @@ export class SharedService {
 
   setUserSettings(settings: any) {
     this.userSettingsSource.next(settings);
+  }
+
+  setConnection(isConnected: boolean) {
+    this.connectionSource.next(isConnected);
   }
 }

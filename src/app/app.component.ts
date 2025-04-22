@@ -6,6 +6,7 @@ import { Network } from '@capacitor/network';
 import { firstValueFrom } from 'rxjs';
 import { InitializationService } from './services/initialization.service';
 import { SharedService } from './services/shared.service';
+import { ToastController } from '@ionic/angular';
 
 @Component({
   selector: 'app-root',
@@ -34,17 +35,63 @@ export class AppComponent {
     private weatherService: WeatherService,
     private preferenceService: PreferenceService,
     private initService: InitializationService,
-    private sharedService: SharedService
+    private sharedService: SharedService,
+    private toastController: ToastController
   ) {}
 
   async ngOnInit() {
     await this.checkNetworkStatus();
 
     Network.addListener('networkStatusChange', status => {
-      this.isConnected = status.connected;
+      if(this.isConnected != status.connected) {
+        this.isConnected = status.connected;
+        this.sharedService.setConnection(this.isConnected);
+        if(status.connected) {
+          this.presentToast('Connection: Online');
+        } else {
+          this.presentToast('Connection: Offline');
+        }
+      }
+      
     })
 
     //await this.preferenceService.clearPreferences();
+    await this.setUserSettings();
+  
+    this.location = await this.locationService.getCurrentPosition();
+    
+    await this.fetchWeather();
+
+    this.initService.initComplete();
+    console.log('Initialization Complete!!');
+  }
+
+  async presentToast(message: string) {
+    const toast = await this.toastController.create({
+      message: message,
+      duration: 3000,
+      position: 'bottom',
+    });
+
+    await toast.present();
+  }
+
+  async checkNetworkStatus() {
+    const status = await Network.getStatus();
+    this.isConnected = status.connected;
+    
+  }
+
+  async initUserSettings() {
+    const setting = {
+      darkMode: false,
+      tempFormat: 'metric'
+    }
+
+    await this.preferenceService.createPreference('settings', setting);
+  }
+
+  async setUserSettings() {
     this.userSettings = await this.preferenceService.getPreference('settings'); // User Settings
     if(this.userSettings === null) {
       console.log('Settings not set, initializing settings...');
@@ -53,16 +100,9 @@ export class AppComponent {
       console.log('Settings Initialized', this.userSettings);
     }
     this.sharedService.setUserSettings(this.userSettings);
+  }
 
-    this.locationService.startWatchingPosition(); // Location Service
-    this.locationService.location$.subscribe(coords => {
-      if(coords) {
-        this.location = coords;
-      }
-    });
-    this.location = await this.locationService.getCurrentPosition();
-    console.log('Current Location: ', this.location);
-
+  async fetchWeather() {
     if(this.isConnected) {
       this.weatherData.tempFormat = this.userSettings.tempFormat;
 
@@ -75,23 +115,6 @@ export class AppComponent {
       this.weatherData = await this.preferenceService.getPreference('weatherData');
       this.sharedService.setWeatherData(this.weatherData);
     }
-
-    this.initService.initComplete();
-    console.log('Initialization Complete!!');
-  }
-
-  async checkNetworkStatus() {
-    const status = await Network.getStatus();
-    this.isConnected = status.connected;
-  }
-
-  async initUserSettings() {
-    const setting = {
-      darkMode: false,
-      tempFormat: 'metric'
-    }
-
-    await this.preferenceService.createPreference('settings', setting);
   }
 
   async getWeatherData() {

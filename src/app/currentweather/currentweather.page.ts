@@ -1,11 +1,12 @@
 import { ChangeDetectorRef, Component } from '@angular/core';
 import { WeatherService } from 'src/app/services/weather.service';
-import { LocationService } from 'src/app/services/location.service';
 import { PreferenceService } from 'src/app/services/preference.service';
-import { NavigationStart, Router } from '@angular/router';
+
 import { InitializationService } from 'src/app/services/initialization.service';
-import { first, firstValueFrom, Subscription } from 'rxjs';
+import { firstValueFrom, Subscription } from 'rxjs';
 import { SharedService } from 'src/app/services/shared.service';
+import { ThemeService } from '../services/theme.service';
+import { Network } from '@capacitor/network';
 
 @Component({
   selector: 'app-currentweather',
@@ -15,9 +16,9 @@ import { SharedService } from 'src/app/services/shared.service';
 })
 export class CurrentweatherPage {
   private initStatusSubscription: Subscription | undefined;
+  isConnected: boolean = false;
   userSettings: any;
-  location: { lat: number; lon: number } | null = null;
-  
+  location: { lat: number, lon: number } | null = null;
   weatherData: {
     tempFormat: string | null;
     currentWeather: {
@@ -58,23 +59,30 @@ export class CurrentweatherPage {
   currentWeatherParams: any = null;
   hourlyWeatherParams: any = null;
   dailyWeatherParams: any = null;
-  search: string = 'mandaue';
+  search: string = '';
+  searched: string = '';
 
   loading: boolean = true;
 
   constructor(
-    private locationService: LocationService,
     private weatherService: WeatherService,
     private preferenceService: PreferenceService,
     private initService: InitializationService,
     private sharedService: SharedService,
-    private cdRef: ChangeDetectorRef
+    private cdRef: ChangeDetectorRef,
+    private themeService: ThemeService
   ) {
   }
 
   async ngOnInit() {
+    
+  }
+
+  ionViewWillEnter() {
     this.initStatusSubscription = this.initService.getInitStatus().subscribe(isInitialized => {
       if(isInitialized) {
+        this.search = '';
+        this.searched = '';
         this.loadData()
       }
     });
@@ -83,27 +91,25 @@ export class CurrentweatherPage {
   private async loadData() {
     this.userSettings = await this.preferenceService.getPreference('settings');
 
-    this.locationService.startWatchingPosition();
-    this.locationService.location$.subscribe(coords => {
-      if(coords) {
-        this.location = coords;
+    this.themeService.toggleChange(this.userSettings.darkMode);
+
+    this.sharedService.connectionStatus$.subscribe(data => {
+      if(this.isConnected != data) {
+        this.isConnected = data;
       }
-    });
-    this.location = await this.locationService.getCurrentPosition();
+      
+      
+    })
 
     this.sharedService.weatherData$.subscribe(data => {
       this.weatherData = data;
+      this.assignCurrentWeatherParams();
+      this.assignHourlyWeatherParams();
+      this.assignDailyWeatherParams();
     })
-    this.assignCurrentWeatherParams();
-    this.assignHourlyWeatherParams();
-    this.assignDailyWeatherParams();
-
-
+    console.log('Weather Data: ', this.weatherData);
     this.loading = false;
     console.log('Done loading!');
-
-    // await this.searchWeather();
-    // console.log('Done Search');
   }
 
   assignCurrentWeatherParams() {
@@ -175,17 +181,20 @@ export class CurrentweatherPage {
   }
 
   async searchWeather() {
+    this.searched = this.search;
     if(this.search === '') {
+      this.loading = true;
       this.weatherData = await this.preferenceService.getPreference('weatherData');
+      this.sharedService.setWeatherData(this.weatherData);
+      this.loading= false;
+      this.cdRef.detectChanges();
+      console.log(this.weatherData);
     } else {
       
       this.loading = true;
       this.weatherData.tempFormat = this.userSettings.tempFormat;
       await this.getWeatherDataByCityName(this.search);
       this.sharedService.setWeatherData(this.weatherData);
-      this.assignCurrentWeatherParams();
-      this.assignHourlyWeatherParams();
-      this.assignDailyWeatherParams();
       this.loading= false;
       this.cdRef.detectChanges();
       console.log(this.weatherData);
@@ -209,5 +218,33 @@ export class CurrentweatherPage {
     } catch(error) {
       console.error('Error fetching weather data by city name as of the moment: ', error);
     }
+  }
+
+  async getWeatherData() {
+    if(!this.location) {
+      alert('Cannot get weather data as of this moment!');
+      return;
+    }
+
+    try {
+      const [current, hourly, daily] = await Promise.all([
+        firstValueFrom(this.weatherService.getCurrentWeather(this.location, this.userSettings.tempFormat)),
+        firstValueFrom(this.weatherService.getHourlyWeather(this.location, 5, this.userSettings.tempFormat)),
+        firstValueFrom(this.weatherService.getDailyWeather(this.location, 5, this.userSettings.tempFormat))
+      ]);
+
+      this.weatherData = {
+        tempFormat: this.userSettings.tempFormat,
+        currentWeather: current,
+        hourlyWeather: hourly,
+        dailyWeather: daily
+      }
+    } catch(error) {
+      console.error('Error fetching weather data as of this moment: ', error);
+    }
+  }
+
+  async onSearch() {
+    await this.searchWeather();
   }
 }
