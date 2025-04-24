@@ -27,4 +27,6 @@ export class SharedService {
   setConnection(isConnected: boolean) {
     this.connectionSource.next(isConnected);
   }
+
+
 }

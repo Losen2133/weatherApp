@@ -7,6 +7,7 @@ import { firstValueFrom, Subscription } from 'rxjs';
 import { SharedService } from 'src/app/services/shared.service';
 import { ThemeService } from '../services/theme.service';
 import { Network } from '@capacitor/network';
+import { DeepseekApiService } from '../services/deepseek-api.service';
 
 @Component({
   selector: 'app-currentweather',
@@ -55,12 +56,13 @@ export class CurrentweatherPage {
     hourlyWeather: null,
     dailyWeather: null,
   };
-
+  
   currentWeatherParams: any = null;
   hourlyWeatherParams: any = null;
   dailyWeatherParams: any = null;
   search: string = '';
   searched: string = '';
+  advice: string = "";
 
   loading: boolean = true;
 
@@ -70,7 +72,8 @@ export class CurrentweatherPage {
     private initService: InitializationService,
     private sharedService: SharedService,
     private cdRef: ChangeDetectorRef,
-    private themeService: ThemeService
+    private themeService: ThemeService,
+    private deepseekApiService: DeepseekApiService
   ) {
   }
 
@@ -98,8 +101,9 @@ export class CurrentweatherPage {
         this.isConnected = data;
       }
       
-      
     })
+
+    
 
     this.sharedService.weatherData$.subscribe(data => {
       this.weatherData = data;
@@ -109,7 +113,27 @@ export class CurrentweatherPage {
     })
     console.log('Weather Data: ', this.weatherData);
     this.loading = false;
-    console.log('Done loading!');
+    console.log('Done loading weather data!');
+
+    if(this.advice === "") {
+      await this.fetchAdvice();
+      console.log('Done loading advice!');
+    }
+  }
+
+  async fetchAdvice() {
+    try {
+      const res: any = await firstValueFrom(
+        this.deepseekApiService.sendToDeepSeek(
+          'You are a weather reporter', `${this.weatherData.currentWeather?.main.temp} degrees ${this.weatherData.currentWeather?.tempFormat}, what advice can you give? limit it to a sentence`
+        )
+      );
+
+      this.advice = res.choices[0].message.content;
+      console.log('Advice fetched');
+    } catch(error) {
+      this.advice = "No available advices right now :(";
+    }
   }
 
   assignCurrentWeatherParams() {
@@ -182,6 +206,7 @@ export class CurrentweatherPage {
 
   async searchWeather() {
     this.searched = this.search;
+    this.advice = "";
     if(this.search === '') {
       this.loading = true;
       this.weatherData = await this.preferenceService.getPreference('weatherData');
@@ -199,6 +224,8 @@ export class CurrentweatherPage {
       this.cdRef.detectChanges();
       console.log(this.weatherData);
     }
+
+    await this.fetchAdvice();
   }
 
   async getWeatherDataByCityName(city: string) {
